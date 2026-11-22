@@ -100,5 +100,7 @@ init_libraries() {
 
     lib_load_files "$LIB_DIR" \
         "core/logging.sh" \
-        "core/errorhandling.sh"
+        "core/error_handling.sh" \
+        "core/specialized_errors.sh" \
+        "core/unexpected_command_errors.sh"
 }

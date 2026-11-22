@@ -5,3 +5,7 @@
 [*] Orchestrator ready.
 [+] Sourced: /home/willem/Projects/Corbel/modules/template/launch_template.sh
 [*] Running module: template
+[FATAL] Error	: Command not found.
+	Command	: template_check
+	File	: modules/template/launch_template.sh:31
+	Caller	: orchestrator/project_pipeline.sh:48 (run_pipeline_modules)
