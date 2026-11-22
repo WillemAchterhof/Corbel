@@ -19,7 +19,7 @@
 # Helpers
 # ==============================================================================
 
-emplate_check() {
+template_check() {
     msg "Checking template..."
 }
 
