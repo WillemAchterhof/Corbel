@@ -15,7 +15,7 @@
 #  Constraints:
 #    - Deepest layer: sources nothing.
 #    - Uses only raw printf/return, plus fatal when it is already defined
-#      (lib_fail prefers fatal once the logging lib is loaded).
+#      (core_fail prefers fatal once the logging lib is loaded).
 #    - Higher layers (orchestrator, modules) call these primitives instead of
 #      re-implementing check/source logic.
 #    - Expects PROJECT_DIR and LIB_DIR to be set by the entry point before
@@ -27,10 +27,10 @@
 # Raw Primitives — usable before any logger exists
 # ==============================================================================
 
-# lib_fail — report and stop. Delegates to fatal when the logging lib is
+# core_fail — report and stop. Delegates to fatal when the logging lib is
 # loaded (single message, logged, no ERR-trap duplicate); falls back to a
 # raw stderr line before that.
-lib_fail() {
+core_fail() {
     if declare -F fatal >/dev/null; then
         fatal "$1"      # exits; never falls through
     fi
@@ -38,7 +38,7 @@ lib_fail() {
     return 1
 }
 
-lib_check_file() {
+core_check_file() {
     local file="$1"
 
     if [[ ! -f "$file" ]]; then
@@ -56,12 +56,12 @@ lib_check_file() {
     bash -n "$file"
 }
 
-lib_source_file() {
+core_source_file() {
     local file="$1"
 
     # shellcheck source=/dev/null
     source "$file" || {
-        lib_fail "Failed loading: $file"
+        core_fail "Failed loading: $file"
         return 1
     }
 }
@@ -69,7 +69,7 @@ lib_source_file() {
 # lib_load_files DIR FILE...
 # Validates every file first, then sources every file.
 # FILE entries may be "<file>.sh" or "<domain>/<file>.sh".
-lib_load_files() {
+core_load_files() {
     local dir="$1"
     shift
 
@@ -77,12 +77,12 @@ lib_load_files() {
 
     # Validate all files before sourcing any.
     for file in "$@"; do
-        lib_check_file "$dir/$file"
+        core_check_file "$dir/$file"
     done
 
     # Source files only after all validations pass.
     for file in "$@"; do
-        lib_source_file "$dir/$file"
+        core_source_file "$dir/$file"
     done
 }
 
@@ -99,7 +99,7 @@ init_core() {
         return 1
     }
 
-    lib_load_files "$LIB_CORE/" \
+    core_load_files "$LIB_CORE/" \
         "logging.sh" \
         "error_handling.sh" \
         "specialized_errors.sh" \

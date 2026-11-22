@@ -48,8 +48,8 @@ load_module() {
     fi
 
     # Verify and source module launcher.
-    lib_check_file "$module_file"
-    lib_source_file "$module_file"
+    core_check_file "$module_file"
+    core_source_file "$module_file"
 
     # Verify module entry function.
     if ! declare -F "run_${module_name}" >/dev/null; then

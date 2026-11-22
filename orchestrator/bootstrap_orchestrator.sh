@@ -72,7 +72,7 @@ install_traps() {
 }
 
 orch_load_components() {
-    lib_load_files "$ORCHESTRATOR_PATH" \
+    core_load_files "$ORCHESTRATOR_PATH" \
         "module_loader.sh" \
         "project_pipeline.sh"
 
