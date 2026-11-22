@@ -91,6 +91,7 @@ lib_load_files() {
 # ==============================================================================
 
 init_core() {
+    LIB_CORE="$LIB_DIR/core"
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
     : > "$LOG_FILE" || {
@@ -98,9 +99,9 @@ init_core() {
         return 1
     }
 
-    lib_load_files "$LIB_DIR" \
-        "core/logging.sh" \
-        "core/error_handling.sh" \
-        "core/specialized_errors.sh" \
-        "core/unexpected_command_errors.sh"
+    lib_load_files "$LIB_CORE/" \
+        "logging.sh" \
+        "error_handling.sh" \
+        "specialized_errors.sh" \
+        "unexpected_command_errors.sh"
 }

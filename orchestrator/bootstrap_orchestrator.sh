@@ -85,7 +85,7 @@ orch_load_components() {
 # ==============================================================================
 
 main() {
-    init_libraries
+    init_core
     msg "Libraries loaded."
 
     install_traps
