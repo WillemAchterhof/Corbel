@@ -33,22 +33,31 @@ readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
 # Rule: lib/ contains only domains; domains contain only files.
 # A domain crossing 10 files splits into sibling domains, never nests.
 declare -r SHARED_LIBS=(
-    # e.g. "detect/disk.sh"
+    "core"
 )
 
 # ==============================================================================
 # Load Libraries
 # ==============================================================================
 
-[[ -f "$LIB_DIR/core/bootstrap_core.sh" &&
-   -r "$LIB_DIR/core/bootstrap_core.sh" ]] || {
-    printf '[FATAL] Library missing or unreadable: %s\n' \
-        "$LIB_DIR/core/bootstrap_core.sh" >&2
-    exit 1
-}
+source_lib_bootstraps() {
+    local domain
+    local bootstrap_file
 
-# shellcheck source=lib/core/bootstrap.sh
-source "$LIB_DIR/core/bootstrap_core.sh"
+    for domain in "${SHARED_LIBS[@]}"; do
+        bootstrap_file="$LIB_DIR/$domain/bootstrap_$domain.sh"
+        printf "bootstrap_file"
+
+        if [[ ! -f "$bootstrap_file" || ! -r "$bootstrap_file" ]]; then
+            printf '[FATAL] Library bootstrap missing or unreadable: %s\n' \
+                "$bootstrap_file" >&2
+            exit 1
+        fi
+
+        # shellcheck source=/dev/null
+        source "$bootstrap_file"
+    done
+}
 
 # ==============================================================================
 # Preparation
@@ -85,7 +94,7 @@ orch_load_components() {
 # ==============================================================================
 
 main() {
-    init_core
+    init_libraries
     msg "Libraries loaded."
 
     install_traps
