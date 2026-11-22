@@ -40,7 +40,7 @@ declare -r SHARED_LIBS=(
 # Load Libraries
 # ==============================================================================
 
-source_lib_bootstraps() {
+bootstrap_libraries() {
     local domain
     local bootstrap_file
 
@@ -71,16 +71,6 @@ install_traps() {
     msg "Initialized Error Handling."
 }
 
-load_shared_libs() {
-    local entry
-
-    for entry in "${SHARED_LIBS[@]}"; do
-        lib_load_files "$LIB_DIR" "$entry"
-    done
-
-    msg "Shared libraries loaded."
-}
-
 orch_load_components() {
     lib_load_files "$ORCHESTRATOR_PATH" \
         "module_loader.sh" \
@@ -94,11 +84,11 @@ orch_load_components() {
 # ==============================================================================
 
 main() {
-    init_libraries
+    bootstrap_libraries
+    init_core
     msg "Libraries loaded."
 
     install_traps
-    load_shared_libs
     orch_load_components
 
     msg "Orchestrator ready."
