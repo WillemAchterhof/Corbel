@@ -27,8 +27,8 @@ template_check() {
 # Main
 # ==============================================================================
 
-template_check() {
-    example_check
+run_template() {
+    template_check
 
     success "Template module executed successfully."
 }
