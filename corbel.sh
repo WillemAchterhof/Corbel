@@ -125,16 +125,16 @@ check_internet_connectivity() {
 download_project() {
     local staging_project
 
-    msg "Downloading ArchGuard ($GIT_BRANCH)..."
+    msg "Downloading corbel ($GIT_BRANCH)..."
 
-    DIR_STAGING="$(mktemp -d "$DIR_BASE/.archguard.XXXXXX")" || \
+    DIR_STAGING="$(mktemp -d "$DIR_BASE/.corbel.XXXXXX")" || \
         fatal "Could not create a temporary download directory."
 
     staging_project="$DIR_STAGING/project"
 
     if ! git clone --branch "$GIT_BRANCH" --depth 1 \
         "$GIT_URL" "$staging_project"; then
-        fatal "Could not download the selected ArchGuard release."
+        fatal "Could not download the selected corbel release."
     fi
 
     validate_project "$staging_project"
@@ -201,7 +201,7 @@ validate_project() {
 activate_project() {
     local staging_project="$DIR_STAGING/project"
 
-    msg "Activating ArchGuard..."
+    msg "Activating corbel..."
 
     # mv DIR_PROJECT → DIR_BACKUP, sets DIR_BACKUP
     backup_current_project
@@ -228,7 +228,7 @@ handoff() {
     [[ -f "$orchestrator" ]] || \
         fatal "Orchestrator not found: $orchestrator"
 
-    msg "Starting ArchGuard..."
+    msg "Starting corbel..."
 
     exec bash "$orchestrator" "$@"
 }
