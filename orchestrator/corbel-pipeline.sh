@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-#  Project Pipeline
+#  Corbel Pipeline
 # ==============================================================================
-#  orchestrator/project-pipeline.sh
+#  orchestrator/corbel-pipeline.sh
 #
 #  Defines the execution sequence of the installer.
 #
