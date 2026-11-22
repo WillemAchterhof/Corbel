@@ -6,7 +6,7 @@ set -Eeuo pipefail
 # ==============================================================================
 # corbel.sh
 #
-# Downloads the selected ArchGuard release and starts its orchestrator.
+# Downloads the selected corbel release and starts its orchestrator.
 
 # ==============================================================================
 # Initialization
