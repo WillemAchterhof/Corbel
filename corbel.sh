@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 # ==============================================================================
-#  Corbel Bootstrap
+#  Project Bootstrap
 # ==============================================================================
 # corbel.sh
 #
@@ -21,7 +21,7 @@ init_variables() {
 
     readonly DIR_PROJECT="$DIR_BASE/corbel"
     readonly DIR_ORCHESTRATOR="orchestrator"
-    readonly FILE_ORCHESTRATOR="launch-orchestrator.sh"
+    readonly FILE_ORCHESTRATOR="launch_orchestrator.sh"
     readonly REL_ORCHESTRATOR="$DIR_ORCHESTRATOR/$FILE_ORCHESTRATOR"
 
     export GIT_TERMINAL_PROMPT=0

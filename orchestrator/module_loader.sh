@@ -23,7 +23,7 @@ load_module() {
 
     local module_name="$1"
     local module_dir="$PROJECT_DIR/modules/$module_name"
-    local module_file="$module_dir/launch-$module_name.sh"
+    local module_file="$module_dir/launch_$module_name.sh"
 
     [[ "$module_name" =~ ^[a-zA-Z0-9_-]+$ ]] ||
         fatal "Invalid module name: $module_name"

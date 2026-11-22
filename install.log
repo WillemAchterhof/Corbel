@@ -1,0 +1,10 @@
+[*] Libraries loaded.
+[*] Initialized Error Handling.
+[*] Shared libraries loaded.
+[+] Orchestrator components loaded.
+[*] Orchestrator ready.
+[+] Sourced: /home/willem/Projects/Corbel/modules/template/launch_template.sh
+[*] Running module: template
+[*] Checking template...
+[+] Template module executed successfully.
+[+] Finished module: template

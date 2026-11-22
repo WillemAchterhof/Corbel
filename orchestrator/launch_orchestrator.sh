@@ -74,8 +74,8 @@ load_shared_libs() {
 
 orch_load_components() {
     lib_load_files "$ORCHESTRATOR_PATH" \
-        "module-loader.sh" \
-        "project-pipeline.sh"
+        "module_loader.sh" \
+        "project_pipeline.sh"
 
     success "Orchestrator components loaded."
 }
