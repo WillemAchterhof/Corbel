@@ -3,7 +3,7 @@
 # ==============================================================================
 #  Project Core Bootstrap
 # ==============================================================================
-#  lib/core/bootstrap.sh
+#  lib/core/bootstrap_core.sh
 #
 #  Bootstraps the core layer and hosts the raw file-loading primitives.
 #

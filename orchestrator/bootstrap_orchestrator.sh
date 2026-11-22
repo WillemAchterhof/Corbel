@@ -40,15 +40,15 @@ declare -r SHARED_LIBS=(
 # Load Libraries
 # ==============================================================================
 
-[[ -f "$LIB_DIR/core/bootstrap.sh" &&
-   -r "$LIB_DIR/core/bootstrap.sh" ]] || {
+[[ -f "$LIB_DIR/core/bootstrap_core.sh" &&
+   -r "$LIB_DIR/core/bootstrap_core.sh" ]] || {
     printf '[FATAL] Library missing or unreadable: %s\n' \
-        "$LIB_DIR/core/bootstrap.sh" >&2
+        "$LIB_DIR/core/bootstrap_core.sh" >&2
     exit 1
 }
 
 # shellcheck source=lib/core/bootstrap.sh
-source "$LIB_DIR/core/bootstrap.sh"
+source "$LIB_DIR/core/bootstrap_core.sh"
 
 # ==============================================================================
 # Preparation
