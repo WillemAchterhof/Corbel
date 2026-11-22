@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # ==============================================================================
 #  Project Orchestrator
 # ==============================================================================
-#  orchestrator/launch-orchestrator.sh
+#  orchestrator/launch_orchestrator.sh
 #
 #  Prepares, validates, and runs the execution environment.
 #

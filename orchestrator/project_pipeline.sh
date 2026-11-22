@@ -3,7 +3,7 @@
 # ==============================================================================
 #  Corbel Pipeline
 # ==============================================================================
-#  orchestrator/corbel-pipeline.sh
+#  orchestrator/corbel_pipeline.sh
 #
 #  Defines the execution sequence of the installer.
 #
@@ -24,6 +24,11 @@ readonly PIPELINE_MODULES=(
 load_pipeline_modules() {
     local module_name
 
+
+fatal() {
+    _log_emit 2 "[FATAL] $*"
+    exit 1
+}
     for module_name in "${PIPELINE_MODULES[@]}"; do
         load_module "$module_name"
     done

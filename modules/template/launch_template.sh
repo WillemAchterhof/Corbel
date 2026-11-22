@@ -3,7 +3,7 @@
 # ==============================================================================
 #  Project <Title> Module
 # ==============================================================================
-#  modules/template/launch-template.sh
+#  modules/template/launch_template.sh
 #
 #  <One-line description of what this module does.>
 #
@@ -19,7 +19,7 @@
 # Helpers
 # ==============================================================================
 
-template_check() {
+emplate_check() {
     msg "Checking template..."
 }
 

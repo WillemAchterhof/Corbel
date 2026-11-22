@@ -41,14 +41,19 @@ lib_fail() {
 lib_check_file() {
     local file="$1"
 
-    [[ -f "$file" ]] ||
-        { lib_fail "Required file missing: $file"; return 1; }
+    if [[ ! -f "$file" ]]; then
+        err_missing_file "$file" \
+            "${BASH_SOURCE[1]}" \
+            "${BASH_LINENO[0]}" \
+            "${FUNCNAME[1]}"
+    fi
 
-    [[ -r "$file" ]] ||
-        { lib_fail "Required file is not readable: $file"; return 1; }
+    if [[ ! -r "$file" ]]; then
+        # Handle unreadable file separately.
+        false
+    fi
 
-    bash -n "$file" ||
-        { lib_fail "Invalid Bash syntax: $file"; return 1; }
+    bash -n "$file"
 }
 
 lib_source_file() {

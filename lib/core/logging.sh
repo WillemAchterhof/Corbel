@@ -24,8 +24,3 @@ msg()     { _log_emit 1 "[*] $*"; }
 success() { _log_emit 1 "[+] $*"; }
 warn()    { _log_emit 2 "[!] $*"; }
 log_only() { { printf '%s\n' "$*" >> "$LOG_FILE"; } 2>/dev/null || true; }
-
-fatal() {
-    _log_emit 2 "[FATAL] $*"
-    exit 1
-}
