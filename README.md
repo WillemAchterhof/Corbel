@@ -1,7 +1,7 @@
 # Shell Framework
 
 A reusable Bash framework for building installers, deployment scripts, and
-ordered multi-stage tooling. Born as the ArchGuard installer skeleton, now
+ordered multi-stage tooling. Born as the Corbel installer skeleton, now
 extracted as a project-agnostic foundation.
 
 The framework gives you a layered orchestrator that loads validated modules
@@ -17,7 +17,7 @@ git clone <repo> myproject
 cd myproject
 
 # rename to taste — only the project name and module payload are coupled:
-#   * pipeline contents (orchestrator/archguard-pipeline.sh → PIPELINE_MODULES)
+#   * pipeline contents (orchestrator/corbel-pipeline.sh → PIPELINE_MODULES)
 #   * the modules/ directory contents
 #   * project name in comments / log filename
 
@@ -30,10 +30,10 @@ cd myproject
 
 ```
 .
-├── ArchGuard.log                  # created at startup (one per run)
+├── Corbel.log                  # created at startup (one per run)
 ├── orchestrator/
 │   ├── launch-orchestrator.sh     # entry point: shell regime, traps, wiring
-│   ├── archguard-pipeline.sh      # module sequence + load/run loops
+│   ├── corbel-pipeline.sh      # module sequence + load/run loops
 │   └── module-loader.sh           # loads one module (locate/validate/source)
 ├── lib/
 │   ├── launch-initialize.sh       # bootstrap: raw loading primitives
@@ -68,7 +68,7 @@ entry point  →  lib bootstrap  →  orchestrator components  →  modules
    creates the log file, and loads the logging/error-handling libs. Sources
    nothing; may rely only on raw `printf`/`return` — plus `fatal` once it
    has been defined.
-3. **Orchestrator layer** (`archguard-pipeline.sh`, `module-loader.sh`) —
+3. **Orchestrator layer** (`corbel-pipeline.sh`, `module-loader.sh`) —
    the pipeline declares the module sequence and controls progression; the
    loader locates, validates, and sources a single module.
 4. **Modules** — self-contained units. Definitions only at source time; all
@@ -228,11 +228,11 @@ The framework is deliberately name-agnostic except for three touch points:
    ```
 
 Keep every other filename as-is across all projects using the framework —
-`launch-orchestrator.sh`, `module-loader.sh`, `archguard-pipeline.sh` — so
+`launch-orchestrator.sh`, `module-loader.sh`, `corbel-pipeline.sh` — so
 recognition transfers between projects.
 
 The pipeline file is the only orchestrator file whose name leaks the old
-project ("archguard"); rename it only if the cognitive itch outweighs
+project ("corbel"); rename it only if the cognitive itch outweighs
 cross-project muscle memory, and update the single reference in
 `orch_load_components` if you do.
 
