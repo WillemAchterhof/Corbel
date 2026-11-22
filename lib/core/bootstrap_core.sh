@@ -90,7 +90,7 @@ lib_load_files() {
 # Main
 # ==============================================================================
 
-init_libraries() {
+init_core() {
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
     : > "$LOG_FILE" || {
