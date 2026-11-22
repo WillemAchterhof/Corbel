@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-#  ArchGuProjectard Module Loader
+#  corbel Module Loader
 # ==============================================================================
 #  orchestrator/module-loader.sh
 #
