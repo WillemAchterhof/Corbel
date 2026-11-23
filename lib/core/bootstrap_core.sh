@@ -90,7 +90,7 @@ core_load_files() {
 # Main
 # ==============================================================================
 
-init_core() {
+init_core_libraries() {
     LIB_CORE="$LIB_DIR/core"
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
