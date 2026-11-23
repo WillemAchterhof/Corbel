@@ -72,7 +72,7 @@ load_error_handling() {
 load_orchestrator_components() {
     load_components "$ORCHESTRATOR_PATH" "$@"
 
-    msg "Orchestrator ready."
+    msg "Orchestrator components loaded."
 }
 
 # ==============================================================================
