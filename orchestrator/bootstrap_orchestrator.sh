@@ -31,7 +31,6 @@ readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
 
 declare -r SHARED_LIBS=(
     "core"
-    "integrity"
 )
 
 declare -r ORCHESTRATOR_COMPONENTS=(
