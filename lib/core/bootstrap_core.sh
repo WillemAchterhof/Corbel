@@ -104,4 +104,5 @@ init_core() {
         "error_handling.sh" \
         "specialized_errors.sh" \
         "unexpected_command_errors.sh"
+        "component_loader.sh"
 }
