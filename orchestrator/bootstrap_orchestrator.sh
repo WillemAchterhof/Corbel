@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # ==============================================================================
 #  Project Orchestrator
 # ==============================================================================
-#  orchestrator/launch_orchestrator.sh
+#  orchestrator/bootstrap_orchestrator.sh
 #
 #  Prepares, validates, and runs the execution environment.
 #
@@ -26,12 +26,27 @@ readonly LIB_DIR="$PROJECT_DIR/lib"
 readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
 
 # ==============================================================================
-# Componnent Array's
+# Core Bootstrap
 # ==============================================================================
 
-declare -r SHARED_LIBS=(
-    "core"
-)
+load_core_libraries() {
+    local bootstrap_file="$LIB_DIR/core/bootstrap_core.sh"
+
+    if [[ ! -f "$bootstrap_file" || ! -r "$bootstrap_file" ]]; then
+        printf '[FATAL] Core bootstrap missing or unreadable: %s\n' \
+            "$bootstrap_file" >&2
+        exit 1
+    fi
+
+    # shellcheck source=/dev/null
+    source "$bootstrap_file"
+
+    init_core_libraries
+}
+
+# ==============================================================================
+# Componnent Array's
+# ==============================================================================
 
 declare -r ORCHESTRATOR_COMPONENTS=(
     "module_loader.sh"
@@ -39,29 +54,7 @@ declare -r ORCHESTRATOR_COMPONENTS=(
 )
 
 # ==============================================================================
-# Load Libraries
-# ==============================================================================
-
-load_libraries() {
-    local domain
-    local bootstrap_file
-
-    for domain in "${SHARED_LIBS[@]}"; do
-        bootstrap_file="$LIB_DIR/$domain/bootstrap_$domain.sh"
-
-        if [[ ! -f "$bootstrap_file" || ! -r "$bootstrap_file" ]]; then
-            printf '[FATAL] Library bootstrap missing or unreadable: %s\n' \
-                "$bootstrap_file" >&2
-            exit 1
-        fi
-
-        # shellcheck source=/dev/null
-        source "$bootstrap_file"
-    done
-}
-
-# ==============================================================================
-# Preparation
+# Load Error Handling
 # ==============================================================================
 
 load_error_handling() {
@@ -72,9 +65,31 @@ load_error_handling() {
     msg "Initialized Error Handling."
 }
 
-load_orchestrator() {
+# ==============================================================================
+# Load Components
+# ==============================================================================
+
+load_orchestrator_components() {
     load_components "$ORCHESTRATOR_PATH" "$@"
     init_components "$@"
+
+    msg "Orchestrator ready."
+}
+
+# ==============================================================================
+# Bootstrapper Handover
+# ==============================================================================
+
+start_project_bootstrapper() {
+    if [[ ! -f "$BOOTSTRAPPER_PATH" || ! -r "$BOOTSTRAPPER_PATH" ]]; then
+        fatal "Project bootstrapper missing or unreadable: $BOOTSTRAPPER_PATH"
+    fi
+
+    msg "Orchestrator preparation complete."
+    msg "Handing over execution to project bootstrapper."
+
+    # Replace the current process.
+    exec bash "$BOOTSTRAPPER_PATH"
 }
 
 # ==============================================================================
@@ -82,13 +97,10 @@ load_orchestrator() {
 # ==============================================================================
 
 main() {
-    load_core
+    load_core_libraries
     load_error_handling
-    load_integrity
-    load_orchestrator "${ORCHESTRATOR_COMPONENTS[@]}"
-
-    msg "Orchestrator ready."
-    run_pipeline
+    load_orchestrator_components "${ORCHESTRATOR_COMPONENTS[@]}"
+    start_project_bootstrapper
 }
 
 main
