@@ -13,6 +13,8 @@
 #   - Verify the module's bootstrap and run names are not already claimed
 #   - Verify its bootstrap file, then its bootstrap function
 #   - Run the bootstrap, which loads the module's components
+#   - Verify the module defined run_<name> and redefined nothing that
+#     already existed
 #
 # Dependencies:
 #   - load_components()           (lib/core/component_loader.sh)
@@ -24,6 +26,23 @@
 #   - Loads modules only; never calls run_<name>.
 #   - Call only in errexit-active context (not inside if, ||, or !).
 # ==============================================================================
+
+# ==============================================================================
+# Function Snapshot
+# ==============================================================================
+
+# Fills the caller's associative array (name passed as $1) with
+# function name -> function body for every function currently defined.
+_module_snapshot_functions() {
+    local -n snapshot_ref="$1"
+    local fn
+
+    snapshot_ref=()
+
+    while IFS= read -r fn; do
+        snapshot_ref["$fn"]="$(declare -f "$fn")"
+    done < <(compgen -A function)
+}
 
 # ==============================================================================
 # Module Loader
@@ -56,6 +75,11 @@ load_module() {
     [[ -d "$module_dir" ]] ||
         err_missing_directory "$module_dir"
 
+    # Snapshot before anything of the module is sourced, so a redefinition
+    # in the bootstrap file or in its components is caught the same way.
+    local -A functions_before=()
+    _module_snapshot_functions functions_before
+
     load_components "$module_dir" "$module_bootstrap"
 
     declare -F "$bootstrap_function" >/dev/null ||
@@ -65,6 +89,15 @@ load_module() {
     # Run the bootstrap: this sources the module's own components,
     # which is what defines run_<name> for the orchestrator.
     "$bootstrap_function"
+
+    declare -F "$run_function" >/dev/null ||
+        fatal "Module did not define its run function: $run_function"
+
+    local fn
+    for fn in "${!functions_before[@]}"; do
+        [[ "$(declare -f "$fn")" == "${functions_before[$fn]}" ]] ||
+            fatal "Module '$module_name' redefined existing function: $fn"
+    done
 
     success "Loaded module: $module_name"
 }
