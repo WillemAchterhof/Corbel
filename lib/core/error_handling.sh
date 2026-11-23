@@ -36,6 +36,7 @@ fatal() {
     local message="$1"
 
     _err_report "[FATAL] $message"
+    declare -g FATAL_REPORTED=1
 
     return 1
 }

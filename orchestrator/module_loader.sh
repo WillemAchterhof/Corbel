@@ -8,11 +8,20 @@
 # Loads an individual Project module.
 #
 # Responsibilities:
+#   - Validate the module name
 #   - Locate the requested module
-#   - Verify its launcher exists and is readable
-#   - Validate its Bash syntax
-#   - Source the module launcher
+#   - Load its launcher (existence, readability and syntax are verified
+#     before it is sourced)
 #   - Verify its entry function exists
+#
+# Dependencies:
+#   - load_components()           (lib/core/component_loader.sh)
+#   - err_missing_directory()     (lib/core/specialized_errors.sh)
+#   - err_missing_function()      (lib/core/specialized_errors.sh)
+#   - fatal(), success()
+#
+# Constraints:
+#   - Call only in errexit-active context (not inside if, ||, or !).
 # ==============================================================================
 
 # ==============================================================================
@@ -20,25 +29,29 @@
 # ==============================================================================
 
 load_module() {
-    [[ $# -eq 1 ]]
+    [[ $# -eq 1 ]] ||
+        fatal "load_module expects exactly one argument"
 
     local module_name="$1"
-    local module_dir="$PROJECT_DIR/modules/$module_name"
-    local module_file="$module_dir/launch_${module_name}.sh"
 
-    [[ "$module_name" =~ ^[a-zA-Z0-9_-]+$ ]]
+    [[ "$module_name" =~ ^[a-zA-Z0-9_-]+$ ]] ||
+        fatal "Invalid module name: $module_name"
+
+    local module_dir="$PROJECT_DIR/modules/$module_name"
+    local module_launcher="bootstrap_${module_name}.sh"
+    local entry_function="bootstrap_${module_name}"
 
     [[ -d "$module_dir" ]] ||
         err_missing_directory "$module_dir"
 
-    declare -F "run_${module_name}" >/dev/null &&
-        fatal "Module entry name already in use: run_${module_name}"
+    if declare -F "$entry_function" >/dev/null; then
+        fatal "Module entry name already in use: $entry_function"
+    fi
 
-    core_check_file "$module_file"
-    core_source_file "$module_file"
+    load_components "$module_dir" "$module_launcher"
 
-    declare -F "run_${module_name}" >/dev/null ||
-        err_missing_function "run_${module_name}" "$module_file"
+    declare -F "$entry_function" >/dev/null ||
+        err_missing_function "$entry_function" "$module_dir/$module_launcher"
 
-    success "Sourced: $module_file"
+    success "Loaded module: $module_name"
 }

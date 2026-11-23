@@ -45,6 +45,7 @@ readonly -a CORE_COMPONENTS=(
 core_fail() {
     if declare -F fatal >/dev/null; then
         fatal "$1"
+        return 1
     fi
 
     printf '[FATAL] %s\n' "$1" >&2
@@ -104,6 +105,9 @@ core_load_files() {
 # ==============================================================================
 
 init_core_libraries() {
+    [[ -z "${LOG_FILE:-}" ]] ||
+    { printf '[FATAL] Core libraries already initialized\n' >&2; return 1; }
+
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
     : > "$LOG_FILE" || {

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 # ==============================================================================
@@ -6,27 +5,24 @@
 # ==============================================================================
 # lib/core/component_loader.sh
 #
-# Provides shared functions for loading and initializing project components.
+# Provides the shared function for loading project components.
 #
 # Responsibilities:
-#   - Validate component files before loading
-#   - Source component files into the current shell
-#   - Initialize components by calling their corresponding functions
+#   - Verify each component file exists, is readable and has valid syntax
+#   - Source the component files into the current shell
 #
 # Dependencies:
-#   - integrity_check_files()
-#   - success()
-#   - fatal()
+#   - core_check_file()      (lib/core/bootstrap_core.sh)
+#   - core_source_file()     (lib/core/bootstrap_core.sh)
+#   - err_missing_file()     (lib/core/specialized_errors.sh)
 #
 # Usage:
 #   load_components "$COMPONENT_PATH" "${COMPONENTS[@]}"
-#   init_components "${COMPONENTS[@]}"
 #
 # Constraints:
-#   - Uses integrity_check_files() for file validation.
 #   - Sources files only after all files pass validation.
-#   - Expects each component file to define a function matching its filename
-#     without the .sh extension.
+#   - Prints nothing on success; the caller decides what to log.
+#   - Call only in errexit-active context (not inside if, ||, or !).
 # ==============================================================================
 
 # ==============================================================================
@@ -39,33 +35,15 @@ load_components() {
 
     local component
 
-    integrity_check_files "$directory" "$@"
+    for component in "$@"; do
+        [[ -f "$directory/$component" ]] ||
+            err_missing_file "$directory/$component"
+
+        core_check_file "$directory/$component"
+    done
 
     for component in "$@"; do
         # shellcheck source=/dev/null
         source "$directory/$component"
     done
-
-    success "Components loaded."
-}
-
-# ==============================================================================
-# Initialize Components
-# ==============================================================================
-
-init_components() {
-    local component
-    local function_name
-
-    for component in "$@"; do
-        function_name="${component%.sh}"
-
-        if ! declare -F "$function_name" >/dev/null; then
-            fatal "Component initializer not found: $function_name"
-        fi
-
-        "$function_name"
-    done
-
-    success "Components initialized."
 }

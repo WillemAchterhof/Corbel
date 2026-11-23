@@ -23,6 +23,8 @@
 trap_err() {
     trap - ERR
 
+    [[ -z "${FATAL_REPORTED:-}" ]] || exit "$1"
+
     local exit_code="$1"
     local failing_command="${2:-unknown}"
     local line="${3:-unknown}"

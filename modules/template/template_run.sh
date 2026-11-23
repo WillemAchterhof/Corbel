@@ -4,7 +4,8 @@
 #  Project <Title> Module
 # ==============================================================================
 #  modules/template/launch_template.sh
-#
+#  # for now the file is deliberately called
+#  # /modules/templat/launc_templat.sh to verrify error handling   
 #  <One-line description of what this module does.>
 #
 #  Responsibilities:
@@ -30,5 +31,5 @@ template_check() {
 run_template() {
     template_check
 
-    success "Template module executed successfully."
+    uccess "Template module executed successfully."
 }
