@@ -26,27 +26,29 @@ readonly LIB_DIR="$PROJECT_DIR/lib"
 readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
 
 # ==============================================================================
-# Shared libraries
+# Componnent Array's
 # ==============================================================================
 
-# Domain libraries under lib/, as "<domain>/<file>" entries.
-# Rule: lib/ contains only domains; domains contain only files.
-# A domain crossing 10 files splits into sibling domains, never nests.
 declare -r SHARED_LIBS=(
     "core"
+    "integrity"
+)
+
+declare -r ORCHESTRATOR_COMPONENTS=(
+    "module_loader.sh"
+    "project_pipeline.sh"
 )
 
 # ==============================================================================
 # Load Libraries
 # ==============================================================================
 
-bootstrap_libraries() {
+load_libraries() {
     local domain
     local bootstrap_file
 
     for domain in "${SHARED_LIBS[@]}"; do
         bootstrap_file="$LIB_DIR/$domain/bootstrap_$domain.sh"
-        printf "bootstrap_file"
 
         if [[ ! -f "$bootstrap_file" || ! -r "$bootstrap_file" ]]; then
             printf '[FATAL] Library bootstrap missing or unreadable: %s\n' \
@@ -63,7 +65,7 @@ bootstrap_libraries() {
 # Preparation
 # ==============================================================================
 
-install_traps() {
+load_error_handling() {
     trap 'trap_err "$?" "$BASH_COMMAND" "$LINENO" "${BASH_LINENO[0]}"' ERR
     trap 'exit 130' INT
     trap 'exit 143' TERM
@@ -71,10 +73,9 @@ install_traps() {
     msg "Initialized Error Handling."
 }
 
-orch_load_components() {
-    core_load_files "$ORCHESTRATOR_PATH" \
-        "module_loader.sh" \
-        "project_pipeline.sh"
+load_orchestrator() {
+    integrity_load_files "$ORCHESTRATOR_PATH" \
+        "${ORCHESTRATOR_COMPONENTS[@]}"
 
     success "Orchestrator components loaded."
 }
@@ -84,15 +85,7 @@ orch_load_components() {
 # ==============================================================================
 
 main() {
-    bootstrap_libraries
-    init_core
-    msg "Libraries loaded."
-
-    install_traps
-    orch_load_components
-
-    msg "Orchestrator ready."
-    run_pipeline
+    
 }
 
 main
