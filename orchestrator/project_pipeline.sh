@@ -1,43 +1,45 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-#  Corbel Pipeline
+# Project Pipeline
 # ==============================================================================
-#  orchestrator/corbel_pipeline.sh
+# orchestrator/project_pipeline.sh
 #
-#  Defines the execution sequence of the installer.
+# Defines the execution sequence of the installer.
 #
-#  Responsibilities:
-#    - Define the execution order of installer modules
-#    - Control progression through the installation stages
+# Responsibilities:
+#   - Define the execution order of installer modules
+#   - Control progression through the installation stages
 # ==============================================================================
 
 # ==============================================================================
 # Pipeline
 # ==============================================================================
 
-readonly PIPELINE_MODULES=(
+readonly -a PIPELINE_MODULES=(
     "template"
     # ... install sequence grows here
 )
 
+# ==============================================================================
+# Load Pipeline Modules
+# ==============================================================================
+
 load_pipeline_modules() {
     local module_name
 
-
-fatal() {
-    _log_emit 2 "[FATAL] $*"
-    exit 1
-}
     for module_name in "${PIPELINE_MODULES[@]}"; do
         load_module "$module_name"
     done
 }
 
+# ==============================================================================
+# Run Pipeline Modules
+# ==============================================================================
+
 run_pipeline_modules() {
     local module_name
 
-    # Verify all entry points exist before running anything.
     for module_name in "${PIPELINE_MODULES[@]}"; do
         declare -F "run_${module_name}" >/dev/null ||
             fatal "Module entry function missing: run_${module_name}"
@@ -45,10 +47,16 @@ run_pipeline_modules() {
 
     for module_name in "${PIPELINE_MODULES[@]}"; do
         msg "Running module: $module_name"
+
         "run_${module_name}"
+
         success "Finished module: $module_name"
     done
 }
+
+# ==============================================================================
+# Run Pipeline
+# ==============================================================================
 
 run_pipeline() {
     load_pipeline_modules
