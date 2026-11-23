@@ -1,8 +1,7 @@
-
 #!/usr/bin/env bash
 
 # ==============================================================================
-# Corbel Module Loader
+# Project Module Loader
 # ==============================================================================
 # orchestrator/module_loader.sh
 #
@@ -16,7 +15,6 @@
 #   - Verify its entry function exists
 # ==============================================================================
 
-
 # ==============================================================================
 # Module Loader
 # ==============================================================================
@@ -28,33 +26,19 @@ load_module() {
     local module_dir="$PROJECT_DIR/modules/$module_name"
     local module_file="$module_dir/launch_${module_name}.sh"
 
-    # Validate module name.
     [[ "$module_name" =~ ^[a-zA-Z0-9_-]+$ ]]
 
-    # Verify module directory.
-    if [[ ! -d "$module_dir" ]]; then
+    [[ -d "$module_dir" ]] ||
         err_missing_directory "$module_dir"
-    fi
 
-    # Prevent duplicate entry functions.
-    if declare -F "run_${module_name}" >/dev/null; then
-        _err_die \
-            "Module entry name already in use." \
-            "Function" \
-            "run_${module_name}" \
-            "${BASH_SOURCE[0]}" \
-            "${BASH_LINENO[0]}" \
-            "${FUNCNAME[0]}"
-    fi
+    declare -F "run_${module_name}" >/dev/null &&
+        fatal "Module entry name already in use: run_${module_name}"
 
-    # Verify and source module launcher.
     core_check_file "$module_file"
     core_source_file "$module_file"
 
-    # Verify module entry function.
-    if ! declare -F "run_${module_name}" >/dev/null; then
+    declare -F "run_${module_name}" >/dev/null ||
         err_missing_function "run_${module_name}" "$module_file"
-    fi
 
     success "Sourced: $module_file"
 }
