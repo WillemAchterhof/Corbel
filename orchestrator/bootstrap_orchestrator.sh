@@ -23,7 +23,6 @@ readonly PROJECT_DIR="$(
     cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &&
     pwd -P
 )"
-readonly PROJECT_DIR
 
 readonly LIB_DIR="$PROJECT_DIR/lib"
 readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
