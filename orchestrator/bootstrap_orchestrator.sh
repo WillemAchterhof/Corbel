@@ -74,10 +74,8 @@ load_error_handling() {
 }
 
 load_orchestrator() {
-    integrity_load_files "$ORCHESTRATOR_PATH" \
-        "${ORCHESTRATOR_COMPONENTS[@]}"
-
-    success "Orchestrator components loaded."
+    load_components "$ORCHESTRATOR_PATH" "$@"
+    init_components "$@"
 }
 
 # ==============================================================================
@@ -85,7 +83,13 @@ load_orchestrator() {
 # ==============================================================================
 
 main() {
-    
+    load_core
+    load_error_handling
+    load_integrity
+    load_orchestrator "${ORCHESTRATOR_COMPONENTS[@]}"
+
+    msg "Orchestrator ready."
+    run_pipeline
 }
 
 main
