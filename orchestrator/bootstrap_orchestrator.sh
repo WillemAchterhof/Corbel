@@ -19,7 +19,10 @@ set -Eeuo pipefail
 # Project Environment
 # ==============================================================================
 
-PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+readonly PROJECT_DIR="$(
+    cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." &&
+    pwd -P
+)"
 readonly PROJECT_DIR
 
 readonly LIB_DIR="$PROJECT_DIR/lib"
@@ -40,7 +43,12 @@ load_core_libraries() {
 
     # shellcheck source=/dev/null
     source "$bootstrap_file"
-
+    
+    if ! declare -F init_core_libraries >/dev/null; then
+        printf '[FATAL] Function missing: init_core_libraries\n' >&2
+        exit 1
+    fi
+    
     init_core_libraries
 }
 
@@ -48,7 +56,7 @@ load_core_libraries() {
 # Orchestrator Components
 # ==============================================================================
 
-declare -r ORCHESTRATOR_COMPONENTS=(
+readonly -a ORCHESTRATOR_COMPONENTS=(
     "module_loader.sh"
     "project_pipeline.sh"
 )
@@ -83,6 +91,8 @@ main() {
     load_core_libraries
     load_error_handling
     load_orchestrator_components "${ORCHESTRATOR_COMPONENTS[@]}"
+    
+    msg "Orchestrator bootstrap completed."
 }
 
 main
