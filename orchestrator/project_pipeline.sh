@@ -26,6 +26,7 @@
 
 readonly -a PIPELINE_MODULES=(
     "template"
+    "template_copy"
     # ... module load order grows here
 )
 
