@@ -13,10 +13,8 @@
 # Constraints:
 #   - Defines the ERR trap handler only.
 #   - Does not install traps.
-#   - Uses the shared error reporter from error_handling.sh.
 #   - Preserves the original exit status.
 # ==============================================================================
-
 
 # ==============================================================================
 # Unexpected Command Failure Handler
@@ -37,13 +35,19 @@ trap_err() {
     file="${file#"$PROJECT_DIR"/}"
     caller_file="${caller_file#"$PROJECT_DIR"/}"
 
-    local title="Command failed."
+    local title
 
-    if (( exit_code == 127 )); then
-        title="Command not found."
-    elif (( exit_code == 126 )); then
-        title="Command not executable."
-    fi
+    case "$exit_code" in
+        126)
+            title="Command not executable."
+            ;;
+        127)
+            title="Command not found."
+            ;;
+        *)
+            title="Command failed."
+            ;;
+    esac
 
     local report
 
