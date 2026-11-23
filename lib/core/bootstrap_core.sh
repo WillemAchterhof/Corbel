@@ -11,6 +11,17 @@
 #   - Define the shared validate/source/load primitives (raw layer)
 #   - Create the log file
 #   - Load core components
+#
+# Constraints:
+#   - Deepest layer: sources nothing.
+#   - Uses only raw printf/return, plus fatal when it is already defined
+#     (core_fail prefers fatal once the logging lib is loaded).
+#   - Higher layers (orchestrator, modules) call these primitives instead of
+#     re-implementing check/source logic.
+#   - Expects PROJECT_DIR and LIB_DIR to be set by the entry point before
+#     this is sourced.
+#   - init_core_libraries must run exactly once
+#     (LOG_FILE is a shared global).
 # ==============================================================================
 
 # ==============================================================================
