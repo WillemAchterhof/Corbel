@@ -106,8 +106,6 @@ load_error_handling() {
 
 load_orchestrator_components() {
     load_components "$ORCHESTRATOR_PATH" "$@"
-
-    success "Loaded: Orchestrator components"
 }
 
 # ==============================================================================
@@ -116,19 +114,10 @@ load_orchestrator_components() {
 
 main() {
     load_libraries "${BOOTSTRAP_LIBRARIES[@]}"
-
-    init_core_libraries
-    success "Initialized: Core"
-
+    init_core_libraries    
     load_error_handling
-
-    init_integrity_libraries
-    success "Initialized: Integrity"
-
+    init_integrity_libraries    
     load_orchestrator_components "${ORCHESTRATOR_COMPONENTS[@]}"
-
-    success "Completed: Orchestrator bootstrap"
-
     load_pipeline_modules
     run_orchestrator
 }
