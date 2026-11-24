@@ -5,11 +5,7 @@
 # ==============================================================================
 # orchestrator/project_pipeline.sh
 #
-# Defines the load order of the installer modules.
-#
-# Responsibilities:
-#   - Define the order in which modules are loaded
-#   - Load each module through load_module()
+# Defines the load order of the project modules.
 #
 # Dependencies:
 #   - load_module()    (lib/integrity/integrity_module_loader.sh)
@@ -17,6 +13,7 @@
 # Constraints:
 #   - Loads and bootstraps modules only.
 #   - Never executes module run functions.
+#   - All modules load before any module executes.
 #   - Execution order lives in project_orchestrator.sh.
 #   - Call only in errexit-active context (not inside if, ||, or !).
 # ==============================================================================
@@ -27,7 +24,6 @@
 
 readonly -a PIPELINE_MODULES=(
     "template"
-    "template_copy"
     # ... module load order grows here
 )
 

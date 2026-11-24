@@ -12,7 +12,7 @@
 #   - Load module components
 #
 # Constraints:
-#   - Sourced by module_loader.sh, which then calls bootstrap_template.
+#   - modules/template/template_run.sh
 #   - Definitions only at top level; all work happens in bootstrap_template.
 #   - Components are loaded, never executed.
 #   - Inherits PROJECT_DIR, shell options and traps from the orchestrator.

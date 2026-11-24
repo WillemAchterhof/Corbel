@@ -26,7 +26,6 @@
 
 readonly -a ORCHESTRATOR_STEPS=(
     "run_template"
-    "run_template_copy"
     # ... execution order grows here
 )
 

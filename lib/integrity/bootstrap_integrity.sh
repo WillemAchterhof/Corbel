@@ -45,9 +45,7 @@ init_integrity_libraries() {
         return 1
     fi
 
-    if ! core_load_files "$LIB_INTEGRITY" "${INTEGRITY_COMPONENTS[@]}"; then
-        return 1
-    fi
+    core_load_files "$LIB_INTEGRITY" "${INTEGRITY_COMPONENTS[@]}"
 
     declare -g INTEGRITY_INITIALIZED=1
 

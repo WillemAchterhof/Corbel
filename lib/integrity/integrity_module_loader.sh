@@ -12,7 +12,7 @@
 #   - Verify module directories
 #   - Verify and load module bootstrap files
 #   - Verify and call module bootstrap functions
-#   - Verify module run functions
+#   - Verify module run functions are not already claimed
 #   - Protect previously defined functions from redefinition
 #
 # Dependencies:
@@ -29,6 +29,8 @@
 #   - Loads and bootstraps modules only.
 #   - Never executes module run functions.
 #   - Module bootstraps validate and load their own internal components.
+#   - Pre-load guards claim bootstrap_/run_ names early; the snapshot
+#     comparison is the general backstop for any other function.
 # ==============================================================================
 
 # ==============================================================================
@@ -49,8 +51,20 @@ load_module() {
     # Validate module name
     # --------------------------------------------------------------------------
 
-    [[ "$module_name" =~ ^[a-zA-Z0-9_-]+$ ]] ||
+    [[ "$module_name" =~ ^[a-z0-9_]+$ ]] ||
         fatal "Invalid module name: $module_name"
+    
+    # --------------------------------------------------------------------------
+    # Pre-load namespace guards
+    # --------------------------------------------------------------------------
+
+    if declare -F "$bootstrap_function" >/dev/null; then
+        fatal "Module bootstrap name already in use: $bootstrap_function"
+    fi
+
+    if declare -F "$run_function" >/dev/null; then
+        fatal "Module run name already in use: $run_function"
+    fi
 
     # --------------------------------------------------------------------------
     # Validate module directory and bootstrap file
