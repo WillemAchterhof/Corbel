@@ -62,17 +62,20 @@ load_module() {
     local bootstrap_function="bootstrap_${module_name}"
     local run_function="run_${module_name}"
 
-    # Namespace guards: every module claims bootstrap_<name> and run_<name>
-    # exactly once. Checked before touching the filesystem.
+    # 1. Namespace guards (before touching the filesystem)
     if declare -F "$bootstrap_function" >/dev/null; then
-        fatal "Module bootstrap name already in use: $bootstrap_function"
+        fatal "Module '$module_name' bootstrap name already in use: $bootstrap_function"
     fi
 
+    if declare -F "$run_function" >/dev/null; then
+        fatal "Module '$module_name' run name already in use: $run_function"
+    fi
+
+    # 2. Filesystem checks
     [[ -d "$module_dir" ]] ||
         err_missing_directory "$module_dir"
 
-    # Snapshot before anything of the module is sourced, so a redefinition
-    # in the bootstrap file or in its components is caught the same way.
+    # 3. Snapshot, then source the bootstrap file
     local -A functions_before=()
     _module_snapshot_functions functions_before
 
@@ -82,18 +85,18 @@ load_module() {
         err_missing_function "$bootstrap_function" \
             "$module_dir/$module_bootstrap"
 
-    # Run the bootstrap: this sources the module's own components,
-    # which is what defines run_<name> for the orchestrator.
+    # 4. Run the bootstrap (sources the module's components)
     "$bootstrap_function"
 
-    declare -F "$run_function" >/dev/null ||
-        fatal "Module: $module_name - did not define its run function: $run_function"
-
+    # 5. Post-load verification
     local fn
     for fn in "${!functions_before[@]}"; do
         [[ "$(declare -f "$fn")" == "${functions_before[$fn]}" ]] ||
             fatal "Module '$module_name' redefined existing function: $fn"
     done
+
+    declare -F "$run_function" >/dev/null ||
+        fatal "Module '$module_name' did not define its run function: $run_function"
 
     success "Loaded module: $module_name"
 }
