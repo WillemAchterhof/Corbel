@@ -10,6 +10,7 @@
 # Responsibilities:
 #   - Report missing directories
 #   - Report missing files
+#   - Report unreadable files
 #   - Report missing functions
 #   - Provide meaningful resource and function context
 #
@@ -40,6 +41,17 @@ err_missing_file() {
 
     fatal \
         "Required file missing: ${file#"$PROJECT_DIR"/}"
+}
+
+# ==============================================================================
+# Unreadable File
+# ==============================================================================
+
+err_unreadable_file() {
+    local file="$1"
+
+    fatal \
+        "Required file is unreadable: ${file#"$PROJECT_DIR"/}"
 }
 
 # ==============================================================================

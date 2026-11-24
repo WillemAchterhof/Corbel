@@ -72,7 +72,5 @@ fatal() {
         "${BASH_LINENO[0]:-unknown}" \
         "${FUNCNAME[1]:-main}"
 
-    declare -g FATAL_REPORTED=1
-
-    return 1
+    exit 1
 }

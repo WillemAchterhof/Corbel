@@ -58,14 +58,20 @@ core_fail() {
 core_check_file() {
     local file="$1"
 
-    [[ -f "$file" ]] ||
+    if [[ ! -f "$file" ]]; then
         core_fail "Missing file: $file"
+        return 1
+    fi
 
-    [[ -r "$file" ]] ||
+    if [[ ! -r "$file" ]]; then
         core_fail "Unreadable file: $file"
+        return 1
+    fi
 
-    bash -n "$file" ||
+    if ! bash -n "$file"; then
         core_fail "Syntax validation failed: $file"
+        return 1
+    fi
 }
 
 # ==============================================================================
@@ -76,8 +82,10 @@ core_source_file() {
     local file="$1"
 
     # shellcheck source=/dev/null
-    source "$file" ||
+    if ! source "$file"; then
         core_fail "Failed loading: $file"
+        return 1
+    fi
 }
 
 # ==============================================================================
@@ -91,11 +99,11 @@ core_load_files() {
     local file
 
     for file in "$@"; do
-        core_check_file "$directory/$file"
+        core_check_file "$directory/$file" || return 1
     done
 
     for file in "$@"; do
-        core_source_file "$directory/$file"
+        core_source_file "$directory/$file" || return 1
     done
 }
 
@@ -104,17 +112,19 @@ core_load_files() {
 # ==============================================================================
 
 init_core_libraries() {
-    [[ -z "${LOG_FILE:-}" ]] ||
-        { printf '[FATAL] Core libraries already initialized\n' >&2; return 1; }
+    if [[ -n "${LOG_FILE:-}" ]]; then
+        core_fail "Core libraries already initialized"
+        return 1
+    fi
 
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
-    : > "$LOG_FILE" || {
-        printf '[FATAL] Cannot create log file: %s\n' "$LOG_FILE" >&2
+    if ! : > "$LOG_FILE"; then
+        core_fail "Cannot create log file: $LOG_FILE"
         return 1
-    }
+    fi
 
-    core_load_files "$LIB_CORE" "${CORE_COMPONENTS[@]}"
+    core_load_files "$LIB_CORE" "${CORE_COMPONENTS[@]}" || return 1
 
     success "Initialized: Core"
 }
