@@ -35,6 +35,9 @@ load_pipeline_modules() {
     local module_name
 
     for module_name in "${PIPELINE_MODULES[@]}"; do
+        AG_CURRENT_MODULE="$module_name"
         load_module "$module_name"
     done
+
+    unset AG_CURRENT_MODULE
 }

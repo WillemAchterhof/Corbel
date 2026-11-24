@@ -18,7 +18,6 @@
 #   - Sourced library: definitions only.
 #   - Uses fatal() for centralized error reporting.
 #   - Does not install traps.
-#   - Never exits directly.
 # ==============================================================================
 
 # ==============================================================================
@@ -28,8 +27,7 @@
 err_missing_directory() {
     local directory="$1"
 
-    fatal \
-        "Required directory missing: ${directory#"$PROJECT_DIR"/}"
+    fatal "Required directory missing: ${directory#"$PROJECT_DIR"/}"
 }
 
 # ==============================================================================
@@ -39,8 +37,7 @@ err_missing_directory() {
 err_missing_file() {
     local file="$1"
 
-    fatal \
-        "Required file missing: ${file#"$PROJECT_DIR"/}"
+    fatal "Required file missing: ${file#"$PROJECT_DIR"/}"
 }
 
 # ==============================================================================
@@ -50,8 +47,7 @@ err_missing_file() {
 err_unreadable_file() {
     local file="$1"
 
-    fatal \
-        "Required file is unreadable: ${file#"$PROJECT_DIR"/}"
+    fatal "Required file is unreadable: ${file#"$PROJECT_DIR"/}"
 }
 
 # ==============================================================================
@@ -62,6 +58,5 @@ err_missing_function() {
     local function_name="$1"
     local source_file="$2"
 
-    fatal \
-        "Required function missing: $function_name (expected in ${source_file#"$PROJECT_DIR"/})"
+    fatal "Required function missing: $function_name (expected in ${source_file#"$PROJECT_DIR"/})"
 }

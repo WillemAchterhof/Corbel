@@ -11,7 +11,7 @@
 #   - Verify that expected functions exist
 #   - Snapshot existing function definitions
 #   - Detect changes to previously defined functions
-#   - Detect removal of previously defined functions.
+#   - Detect removal of previously defined functions
 #
 # Dependencies:
 #   - err_missing_function()
@@ -31,8 +31,10 @@ integrity_check_function() {
     local function_name="$1"
     local source_file="$2"
 
-    declare -F "$function_name" >/dev/null ||
+    if ! declare -F "$function_name" >/dev/null; then
         err_missing_function "$function_name" "$source_file"
+        return 1
+    fi
 }
 
 # ==============================================================================
@@ -57,16 +59,12 @@ integrity_snapshot_functions() {
 integrity_check_functions_unchanged() {
     local -n before_ref="$1"
     local label="$2"
-
     local function_name
 
     for function_name in "${!before_ref[@]}"; do
-        if ! declare -F "$function_name" >/dev/null; then
-            fatal "$label removed existing function: $function_name"
-        fi
-
         if [[ "$(declare -f "$function_name")" != "${before_ref[$function_name]}" ]]; then
-            fatal "$label redefined existing function: $function_name"
+            fatal "$label changed or removed existing function: $function_name"
+            return 1
         fi
     done
 }

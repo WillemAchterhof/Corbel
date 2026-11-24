@@ -13,15 +13,14 @@ set -Eeuo pipefail
 #   - Source the bootstrap libraries (core, integrity)
 #   - Initialize the core and integrity layers
 #   - Configure error handling
-#   - Verify project integrity
 #   - Load orchestrator components
+#   - Load and execute the configured module pipeline
 #
 # Constraints:
-#   - Bootstrap libraries are only sourced here (definitions only);
-#     they are initialized afterwards, in order.
+#   - Bootstrap libraries are sourced here as definitions, then initialized.
 #   - Before core is initialized, only raw printf/return is available.
 #   - Call order in main is fixed: core, error handling, integrity,
-#     orchestrator components.
+#     orchestrator components, module loading, module execution.
 # ==============================================================================
 
 # ==============================================================================
@@ -53,12 +52,14 @@ readonly -a ORCHESTRATOR_COMPONENTS=(
 )
 
 # ==============================================================================
-# Load Libraries
+# Load Bootstrap Libraries
 # ==============================================================================
 
 load_libraries() {
-    local library library_path
+    local library
+    local library_path
 
+    # Validate all bootstrap libraries before sourcing any of them.
     for library in "$@"; do
         library_path="$LIB_DIR/$library"
 
@@ -68,24 +69,22 @@ load_libraries() {
             return 1
         fi
 
-        bash -n "$library_path" || {
+        if ! bash -n "$library_path"; then
             printf '[FATAL] Syntax validation failed: %s\n' \
                 "$library_path" >&2
             return 1
-        }
+        fi
     done
 
     for library in "$@"; do
         library_path="$LIB_DIR/$library"
 
         # shellcheck source=/dev/null
-        source "$library_path" || {
+        if ! source "$library_path"; then
             printf '[FATAL] Failed loading: %s\n' "$library_path" >&2
             return 1
-        }
+        fi
     done
-
-    printf '[*] Loaded: Bootstrap libraries\n'
 }
 
 # ==============================================================================
@@ -114,12 +113,16 @@ load_orchestrator_components() {
 
 main() {
     load_libraries "${BOOTSTRAP_LIBRARIES[@]}"
-    init_core_libraries    
+
+    init_core_libraries
     load_error_handling
-    init_integrity_libraries    
+    init_integrity_libraries
     load_orchestrator_components "${ORCHESTRATOR_COMPONENTS[@]}"
+
+    success "Completed: Orchestrator bootstrap"
+
     load_pipeline_modules
     run_orchestrator
 }
 
-main
+main "$@"

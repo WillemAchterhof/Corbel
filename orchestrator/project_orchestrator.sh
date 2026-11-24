@@ -13,11 +13,13 @@
 #   - Call the functions one by one
 #
 # Dependencies:
-#   - msg(), success(), fatal()
+#   - msg()
+#   - fatal()
 #
 # Constraints:
 #   - Executes only; modules are loaded by project_pipeline.sh.
 #   - Call only in errexit-active context (not inside if, ||, or !).
+#   - Module functions report their own successful completion.
 # ==============================================================================
 
 # ==============================================================================
@@ -36,16 +38,17 @@ readonly -a ORCHESTRATOR_STEPS=(
 run_orchestrator() {
     local step
 
+    # Verify every execution function before running any of them.
     for step in "${ORCHESTRATOR_STEPS[@]}"; do
         declare -F "$step" >/dev/null ||
             fatal "Orchestrator step missing: $step"
     done
 
     for step in "${ORCHESTRATOR_STEPS[@]}"; do
+        AG_CURRENT_MODULE="${step#run_}"
         msg "Running: $step"
-
         "$step"
-
-        success "Finished: $step"
     done
+
+    unset AG_CURRENT_MODULE
 }

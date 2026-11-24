@@ -13,6 +13,8 @@
 #
 # Dependencies:
 #   - core_load_files()    (lib/core/bootstrap_core.sh)
+#   - fatal()
+#   - msg()
 #
 # Constraints:
 #   - Sourced after the core layer has been initialized.
@@ -42,12 +44,11 @@ readonly -a INTEGRITY_COMPONENTS=(
 init_integrity_libraries() {
     if [[ -n "${INTEGRITY_INITIALIZED:-}" ]]; then
         fatal "Integrity libraries already initialized"
-        return 1
     fi
 
-    core_load_files "$LIB_INTEGRITY" "${INTEGRITY_COMPONENTS[@]}"
+    core_load_files "$LIB_INTEGRITY" "${INTEGRITY_COMPONENTS[@]}" || return 1
 
     declare -g INTEGRITY_INITIALIZED=1
 
-    success "Initialized: Integrity"
+    msg "Initialized: Integrity"
 }

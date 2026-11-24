@@ -21,16 +21,14 @@
 #   - integrity_check_function()
 #   - integrity_snapshot_functions()
 #   - integrity_check_functions_unchanged()
-#   - load_components()
 #   - fatal()
+#   - msg()
 #   - success()
 #
 # Constraints:
 #   - Loads and bootstraps modules only.
 #   - Never executes module run functions.
 #   - Module bootstraps validate and load their own internal components.
-#   - Pre-load guards claim bootstrap_/run_ names early; the snapshot
-#     comparison is the general backstop for any other function.
 # ==============================================================================
 
 # ==============================================================================
@@ -38,8 +36,7 @@
 # ==============================================================================
 
 load_module() {
-    [[ $# -eq 1 ]] ||
-        fatal "load_module expects exactly one argument"
+    [[ $# -eq 1 ]] || fatal "load_module expects exactly one argument"
 
     local module_name="$1"
     local module_directory="$PROJECT_DIR/modules/$module_name"
@@ -53,7 +50,7 @@ load_module() {
 
     [[ "$module_name" =~ ^[a-z0-9_]+$ ]] ||
         fatal "Invalid module name: $module_name"
-    
+
     # --------------------------------------------------------------------------
     # Pre-load namespace guards
     # --------------------------------------------------------------------------
@@ -78,7 +75,6 @@ load_module() {
     # --------------------------------------------------------------------------
 
     local -A functions_before=()
-
     integrity_snapshot_functions functions_before
 
     # --------------------------------------------------------------------------
@@ -94,6 +90,7 @@ load_module() {
     # Run module bootstrap
     # --------------------------------------------------------------------------
 
+    msg "Bootstrapping: $module_name"
     "$bootstrap_function"
 
     # --------------------------------------------------------------------------
@@ -106,5 +103,5 @@ load_module() {
 
     integrity_check_function "$run_function" "$bootstrap_file"
 
-    success "Module loaded: $module_name"
+    success "Loaded module: $module_name"
 }

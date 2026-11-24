@@ -14,6 +14,7 @@
 #
 # Dependencies:
 #   - err_missing_file()
+#   - err_unreadable_file()
 #   - fatal()
 #
 # Constraints:
@@ -29,9 +30,19 @@
 integrity_check_file() {
     local file="$1"
 
-    [[ -f "$file" && -r "$file" ]] ||
+    if [[ ! -f "$file" ]]; then
         err_missing_file "$file"
+        return 1
+    fi
 
-    bash -n "$file" ||
-        fatal "Syntax validation failed: $file"
+    if [[ ! -r "$file" ]]; then
+        err_unreadable_file "$file"
+        return 1
+    fi
+
+    local syntax_error
+    if ! syntax_error=$(bash -n "$file" 2>&1); then
+        fatal "Syntax validation failed: $file: $syntax_error"
+        return 1
+    fi
 }

@@ -12,7 +12,6 @@
 #   - Load module components
 #
 # Constraints:
-#   - modules/template/template_run.sh
 #   - Definitions only at top level; all work happens in bootstrap_template.
 #   - Components are loaded, never executed.
 #   - Inherits PROJECT_DIR, shell options and traps from the orchestrator.
@@ -38,8 +37,6 @@ readonly -a TEMPLATE_COMPONENTS=(
 
 load_template_components() {
     load_components "$TEMPLATE_PATH" "$@"
-
-    msg "Template module components loaded."
 }
 
 # ==============================================================================
@@ -48,5 +45,5 @@ load_template_components() {
 
 bootstrap_template() {
     load_template_components "${TEMPLATE_COMPONENTS[@]}"
-    msg "Template module bootstrap completed."
+    success "Completed: Template bootstrap"
 }

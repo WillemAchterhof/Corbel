@@ -1,275 +1,181 @@
-# Shell Framework
+# Corbel
 
-A reusable Bash framework for building installers, deployment scripts, and
-ordered multi-stage tooling. Born as the Corbel installer skeleton, now
-extracted as a project-agnostic foundation.
-
-The framework gives you a layered orchestrator that loads validated modules
-from a declarative pipeline, with a two-path error model that makes every
-failure loud, located, and logged.
-
----
+Corbel is a reusable Bash framework for loading and executing an ordered set of
+project modules. The framework separates bootstrap, integrity validation,
+module loading, and module execution.
 
 ## Quick start
 
 ```bash
-git clone <repo> myproject
-cd myproject
-
-# rename to taste — only the project name and module payload are coupled:
-#   * pipeline contents (orchestrator/corbel-pipeline.sh → PIPELINE_MODULES)
-#   * the modules/ directory contents
-#   * project name in comments / log filename
-
-./orchestrator/launch-orchestrator.sh
+./corbel.sh
 ```
 
----
+`corbel.sh` downloads the configured Corbel branch, validates the orchestrator
+entry point, activates the downloaded project, and hands off to
+`orchestrator/bootstrap_orchestrator.sh`.
 
-## Directory layout
+To run an already downloaded working copy directly:
 
+```bash
+bash orchestrator/bootstrap_orchestrator.sh
 ```
+
+## Project layout
+
+```text
 .
-├── Corbel.log                  # created at startup (one per run)
-├── orchestrator/
-│   ├── launch-orchestrator.sh     # entry point: shell regime, traps, wiring
-│   ├── corbel-pipeline.sh      # module sequence + load/run loops
-│   └── module-loader.sh           # loads one module (locate/validate/source)
+├── corbel.sh
+├── README.md
 ├── lib/
-│   ├── launch-initialize.sh       # bootstrap: raw loading primitives
-│   ├── initialize-logging.sh      # msg / success / warn / fatal / log_only
-│   └── initialize-errorhandling.sh# trap_err: the ERR trap handler
+│   ├── core/
+│   │   ├── bootstrap_core.sh
+│   │   ├── logging.sh
+│   │   ├── error_handling.sh
+│   │   ├── specialized_errors.sh
+│   │   └── unexpected_command_errors.sh
+│   └── integrity/
+│       ├── bootstrap_integrity.sh
+│       ├── integrity_component_loader.sh
+│       ├── integrity_directory_checks.sh
+│       ├── integrity_file_checks.sh
+│       ├── integrity_function_checks.sh
+│       └── integrity_module_loader.sh
+├── orchestrator/
+│   ├── bootstrap_orchestrator.sh
+│   ├── project_pipeline.sh
+│   └── project_orchestrator.sh
 └── modules/
-    ├── template/                  # canonical copy-and-go module template
-    │   └── launch-template.sh
-    └── test/                      # sample module
-        └── launch-test.sh
+    └── template/
+        ├── bootstrap_template.sh
+        └── template_run.sh
 ```
 
-Each module lives in `modules/<name>/launch-<name>.sh` and exposes exactly one
-public function: `run_<name>`.
+## Execution model
 
----
+The execution lifecycle is deliberately split into loading and running:
 
-## Architecture
+1. `bootstrap_orchestrator.sh` establishes project paths and shell options.
+2. It sources the core and integrity bootstrap files.
+3. `init_core_libraries()` loads logging and error-handling functions.
+4. The ERR, INT, and TERM traps are installed.
+5. `init_integrity_libraries()` loads the integrity functions.
+6. `load_components()` validates and loads the orchestrator components.
+7. `load_pipeline_modules()` loads and bootstraps each module in
+   `PIPELINE_MODULES` order.
+8. `run_orchestrator()` verifies every configured run function exists, then
+   executes the functions in `ORCHESTRATOR_STEPS` order.
 
-### Layering
+The pipeline never executes module run functions. The module loader never
+executes a module run function. Execution belongs exclusively to the project
+orchestrator.
 
-```
-entry point  →  lib bootstrap  →  orchestrator components  →  modules
-```
+## Integrity and component loading
 
-1. **Entry point** (`launch-orchestrator.sh`) — owns the shell regime
-   (`set -Eeuo pipefail`), installs traps, wires everything, runs the
-   pipeline. It knows exactly two orchestrator components and nothing about
-   modules.
-2. **Raw layer** (`launch-initialize.sh`) — hosts the shared loading
-   primitives (`lib_check_file`, `lib_source_file`, `lib_load_files`),
-   creates the log file, and loads the logging/error-handling libs. Sources
-   nothing; may rely only on raw `printf`/`return` — plus `fatal` once it
-   has been defined.
-3. **Orchestrator layer** (`corbel-pipeline.sh`, `module-loader.sh`) —
-   the pipeline declares the module sequence and controls progression; the
-   loader locates, validates, and sources a single module.
-4. **Modules** — self-contained units. Definitions only at source time; all
-   work happens inside `run_<name>`.
+`load_components()` performs these steps:
 
-### Ownership rule
+1. Validate the component directory.
+2. Validate every requested file, including Bash syntax.
+3. Only after all files pass validation, source the component files.
+4. Report the successful component load.
 
-> Whoever consumes a thing declares it; the layer above only wires entry
-> points.
+The module loader validates the module name, directory, and bootstrap file;
+checks that the bootstrap and run function names are not already claimed;
+snapshots existing functions; sources and calls the module bootstrap; checks
+that existing functions were not changed or removed; and verifies the module's
+run function exists.
 
-Concretely:
+Module names currently use lowercase letters, digits, and underscores:
+`^[a-z0-9_]+$`. This keeps generated function names such as `bootstrap_<name>`
+and `run_<name>` valid Bash identifiers.
 
-- The **pipeline** declares `PIPELINE_MODULES` — not the launcher, not a
-  config file.
-- The **loader** performs the collision check — a second module defining
-  `run_<name>` is rejected at load time, not silently overwriting the first.
-- The **entry point** names exactly two orchestrator components and the
-  bootstrap library. Nothing else.
-- Modules prefix their helper functions with `<name>_` to stay out of each
-  other's namespace.
+## Error handling
 
-### Error model — the core contract
+Corbel has two error paths:
 
-There are exactly two failure paths, and each has one job:
+- **Expected validation failures** call `fatal()`. It writes one structured
+  `[FATAL]` report to stderr and the project log, then exits with status 1.
+- **Unexpected command failures** are handled by `set -Eeuo pipefail` and the
+  ERR trap. `trap_err()` reports the command, source location, caller, current
+  module, and original exit status, then exits with that status.
 
-| Failure type | Path | Behavior |
+During the earliest core bootstrap stage, before `fatal()` is available,
+`core_fail()` prints a raw fatal message and returns failure. The top-level
+bootstrap is called in an errexit-active context, so initialization stops.
+
+Do not wrap action functions in `if`, `!`, `&&`, or `||` merely to test their
+status. Bash suppresses `errexit` and ERR-trap behavior in conditional command
+contexts, including functions called from those contexts. Use conditional
+operators only when the condition is intentionally handled.
+
+## Module context
+
+`load_pipeline_modules()` sets `AG_CURRENT_MODULE` while each module is being
+loaded and bootstrapped. `run_orchestrator()` sets it while the corresponding
+`run_<module>` function executes. The variable is cleared after each phase
+completes. Unexpected-command reports use it to identify the active module.
+
+## Logging convention
+
+The core logging functions are:
+
+| Function | Prefix | Destination |
 |---|---|---|
-| **Anticipated** (missing file, bad name, syntax error, collision) | `fatal` | One `[FATAL]` message, logged to screen and file, `exit 1`. Works in every context because `exit` ignores `-e` suppression. |
-| **Unanticipated** (typos, failed commands, unexpected exits) | `errexit` + ERR trap | `trap_err` reports module, file, line, caller, command, and exit code (with `127 → not found`, `126 → not executable` decoding), preserves the original exit code, and exits. |
+| `msg` | `[*]` | stdout and log |
+| `success` | `[+]` | stdout and log |
+| `warn` | `[!]` | stderr and log |
+| `log_only` | none | log only |
 
-**The rule that keeps this model intact:**
+Lifecycle messages describe the operation and its scope, for example:
 
-> In Bash, `||` is a decision operator, not error handling. Calling a
-> function under `||` suspends `set -e` **and the ERR trap for the entire
-> call tree**, not just for that call. A guard like `run_pipeline || return 1`
-> disables the safety net for every module it runs.
+```text
+[*] Loaded: Core libraries
+[*] Initialized: Core
+[*] Initialized: Error handling
+[*] Initialized: Integrity
+[*] Loaded: Orchestrator components
+[+] Completed: Orchestrator bootstrap
 
-Therefore:
+[*] Bootstrapping: template
+[*] Loaded: Template components
+[+] Completed: Template bootstrap
+[+] Loaded module: template
 
-- **Call action functions bare.** No `|| return 1` guards on actions whose
-  internals deserve protection.
-- **Use `||` only for decisions**, where the right side handles the outcome
-  — `[[ -f "$file" ]] || fatal "..."`, `declare -F "$entry" || fatal "..."`,
-  `source "$file" || lib_fail "..."`.
-- **Modules fail loudly.** A failing check stops the installer via the trap;
-  reserve `||` inside modules for genuine recoverable decisions.
-
-### Validation-before-execution
-
-The framework never runs half a pipeline by accident:
-
-- `lib_load_files` validates (`-f`, `-r`, `bash -n`) **every** file before
-  sourcing **any**.
-- `load_pipeline_modules` loads and validates every module before the first
-  one runs.
-- `run_pipeline_modules` re-verifies all entry functions exist before
-  executing the sequence.
-- Module names are checked against `^[a-zA-Z0-9_-]+$` before they touch the
-  filesystem — path traversal (`../../etc`) is rejected outright.
-- Entry-function collision is checked **before** sourcing and existence
-  re-checked **after** — a module file that parses but doesn't deliver its
-  contract never enters the pipeline.
-
-### Logging
-
-All output flows through the logging lib — no bare `echo`:
-
-| Function | Stream | Log file |
-|---|---|---|
-| `msg` / `success` | stdout | yes |
-| `warn` / `fatal` | stderr | yes |
-| `log_only` | — | only |
-
-The log file is truncated at startup. Output conventions: every user-facing
-message starts with a capital letter.
-
-### `AG_CURRENT_MODULE` protocol
-
-`load_pipeline_modules` and `run_pipeline_modules` each set
-`AG_CURRENT_MODULE` before processing a module and clear it after their
-loop. `trap_err` reads it, so error reports name the current module during
-**both** the load and the run phase.
-
----
-
-## Writing a module
-
-Copy `modules/template/` to `modules/<name>/` and rename the launcher to
-`launch-<name>.sh`. Follow the conventions:
-
-```bash
-#!/usr/bin/env bash
-
-# ==============================================================================
-#  <Project> <Title> Module
-# ==============================================================================
-#  modules/<name>/launch-<name>.sh
-#
-#  <One-line description.>
-#
-#  Responsibilities:
-#    - <what it does>
-#
-#  Constraints:
-#    - Definitions only at top level; all work happens in run_<name>.
-#    - Helper functions are prefixed with <name>_ to avoid name clashes.
-# ==============================================================================
-
-<name>_check() {
-    msg "Checking <something>..."
-    # Failures here stop the installer via errexit + ERR trap.
-}
-
-run_<name>() {
-    <name>_check
-
-    success "<Name> module executed successfully."
-}
+[*] Running: run_template
+[*] Checking template...
+[+] Completed: Template module execution
 ```
 
-Rules that the framework enforces or assumes:
+## Adding a module
 
-1. Exactly one public function: `run_<name>` — a collision anywhere else in
-   the pipeline is a fatal load error.
-2. No top-level side effects: sourcing the module must only define functions.
-3. Helpers prefixed with `<name>_`.
-4. Fail loudly: don't swallow errors; let the trap report them with context.
-5. Use only the logging lib for output.
+1. Create `modules/<name>/`.
+2. Add `bootstrap_<name>.sh` and its component files.
+3. Define `bootstrap_<name>()` in the bootstrap file.
+4. Define `run_<name>()` in one of the module components.
+5. Add the module name to `PIPELINE_MODULES` in
+   `orchestrator/project_pipeline.sh`.
+6. Add `run_<name>` to `ORCHESTRATOR_STEPS` in
+   `orchestrator/project_orchestrator.sh`.
 
-Then register it in the pipeline:
-
-```bash
-readonly PIPELINE_MODULES=(
-    "preflight"
-    "<name>"
-)
-```
-
-That's the whole integration surface — one array entry.
-
----
-
-## Deriving a new project
-
-The framework is deliberately name-agnostic except for three touch points:
-
-1. **`PIPELINE_MODULES`** — empty it and fill it with your project's
-   modules.
-2. **`modules/`** — delete `test/` and `template/` when you add real ones
-   (keep `template/` around during development; a heartbeat module is a
-   useful sanity check).
-3. **Project name** — in comments and the log filename. To eliminate even
-   the log rename, derive it from the directory:
-
-   ```bash
-   LOG_FILE="$PROJECT_DIR/$(basename "$PROJECT_DIR").log"
-   ```
-
-Keep every other filename as-is across all projects using the framework —
-`launch-orchestrator.sh`, `module-loader.sh`, `corbel-pipeline.sh` — so
-recognition transfers between projects.
-
-The pipeline file is the only orchestrator file whose name leaks the old
-project ("corbel"); rename it only if the cognitive itch outweighs
-cross-project muscle memory, and update the single reference in
-`orch_load_components` if you do.
-
----
+Module files should define functions and constants when sourced. Actual module
+work belongs in `run_<name>()`. Prefix helper functions with `<name>_` to
+reduce the risk of namespace collisions.
 
 ## Verification
 
-Before trusting a change, run both gates:
+Run syntax checks from the project root:
 
 ```bash
-# Gate 1: static
-shellcheck lib/*.sh orchestrator/*.sh modules/*/*.sh
-
-# Gate 2: behavioral — corrupt a module on purpose
-echo "this is not bash" >> modules/test/launch-test.sh
-./orchestrator/launch-orchestrator.sh
-# Expect: ONE [FATAL] error report naming the module, clean exit,
-# and NO pipeline progression past the failure.
+find . -type f -name '*.sh' -not -path './.git/*' -print0 \
+    | xargs -0 -n1 bash -n
 ```
 
-If the corruption produces two messages (a raw line plus a trap report),
-the `lib_fail` → `fatal` delegation has regressed. If the pipeline
-continues after a failure, something reintroduced a `||` guard on an
-action — re-read the error model above.
+If ShellCheck is installed:
 
----
+```bash
+shellcheck corbel.sh lib/core/*.sh lib/integrity/*.sh \
+    orchestrator/*.sh modules/*/*.sh
+```
 
-## Conventions recap
-
-- `set -Eeuo pipepipefail` — the ERR trap inherits into every function.
-- Bare calls for actions; `||` only where the right side handles the
-  outcome.
-- `bash -n` gates every sourced file; `bash -n` validates syntax, never
-  names — a typo'd function name is invisible until runtime.
-- One loading path in the codebase (`lib_*` primitives); no duplicated
-  validate/source logic anywhere else.
-- Headers tell the truth: Responsibilities and Constraints sections
-  describe what the file *actually does*. When behavior changes, the
-  header changes with it.
-- Captalized log strings; all output through the logging lib.
+Then run the orchestrator directly and confirm the lifecycle output and exit
+status. Test expected validation failures and unexpected command failures in a
+temporary copy of the project, not in the working project.

@@ -11,13 +11,12 @@
 #   - Format structured fatal error reports
 #   - Write error reports to stderr and the project log
 #   - Provide a shared fatal error function
-#   - Mark deliberately reported fatal errors
 #
 # Constraints:
 #   - Sourced library: definitions only.
 #   - Does not install traps.
 #   - Does not define specialized error messages.
-#   - Never exits directly.
+#   - fatal() terminates the process with status 1.
 #   - Expects LOG_FILE and PROJECT_DIR to be initialized.
 # ==============================================================================
 

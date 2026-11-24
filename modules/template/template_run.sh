@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-#  Project <Title> Module
+# Template Module
 # ==============================================================================
-#  modules/template/template_run.sh 
-#  <One-line description of what this module does.>
+# modules/template/template_run.sh
 #
-#  Responsibilities:
-#    - <what it does>
+# Demonstrates the module execution contract.
 #
-#  Constraints:
-#    - Definitions only at top level; all work happens in run_<name>.
-#    - Helper functions are prefixed with <name>_ to avoid name clashes.
+# Responsibilities:
+#   - Provide a simple template check
+#
+# Constraints:
+#   - Definitions only at top level; all work happens in run_template.
+#   - Helper functions are prefixed with template_ to avoid name clashes.
 # ==============================================================================
 
 # ==============================================================================
@@ -29,5 +30,5 @@ template_check() {
 run_template() {
     template_check
 
-    success "Template module executed successfully."
+    success "Completed: Template module execution"
 }

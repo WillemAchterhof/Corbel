@@ -26,6 +26,8 @@
 integrity_check_directory() {
     local directory="$1"
 
-    [[ -d "$directory" ]] ||
+    if [[ ! -d "$directory" ]]; then
         err_missing_directory "$directory"
+        return 1
+    fi
 }

@@ -14,9 +14,10 @@
 #   - Source validated component files
 #
 # Dependencies:
-#   - err_missing_directory()
-#   - err_missing_file()
+#   - integrity_check_directory()
+#   - integrity_check_file()
 #   - fatal()
+#   - msg()
 #
 # Constraints:
 #   - Sourced library: definitions only.
@@ -29,30 +30,32 @@
 # ==============================================================================
 
 load_components() {
+    [[ $# -ge 1 ]] || fatal "load_components requires a directory argument"
+
     local directory="$1"
     shift
 
     local component
+    local component_path
+    local component_group="${directory##*/}"
 
-    [[ -d "$directory" ]] ||
-        err_missing_directory "$directory"
+    component_group="${component_group^}"
 
+    integrity_check_directory "$directory"
+
+    # Validate every component before sourcing any of them.
     for component in "$@"; do
-        local component_path="$directory/$component"
-
-        [[ -f "$component_path" && -r "$component_path" ]] ||
-            err_missing_file "$component_path"
-
-        bash -n "$component_path" ||
-            fatal "Failed loading component: $component_path"
+        component_path="$directory/$component"
+        integrity_check_file "$component_path"
     done
 
+    # Source validated components.
     for component in "$@"; do
-        local component_path="$directory/$component"
+        component_path="$directory/$component"
 
         # shellcheck source=/dev/null
         source "$component_path"
     done
 
-    success "Loaded: ${directory##*/} components"
+    msg "Loaded: $component_group components"
 }

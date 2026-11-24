@@ -14,14 +14,10 @@
 #
 # Constraints:
 #   - Deepest layer: sources nothing.
-#   - Uses only raw printf/return, plus fatal when it is already defined
-#     (core_fail prefers fatal once the logging lib is loaded).
-#   - Higher layers (orchestrator, modules) call these primitives instead of
-#     re-implementing check/source logic.
-#   - Expects PROJECT_DIR and LIB_DIR to be set by the entry point before
-#     this is sourced.
-#   - init_core_libraries must run exactly once
-#     (LOG_FILE is a shared global).
+#   - Uses only raw printf/return before the logging and error libraries load.
+#   - Higher layers call these primitives instead of re-implementing checks.
+#   - Expects PROJECT_DIR and LIB_DIR to be set before this file is sourced.
+#   - init_core_libraries must run exactly once.
 # ==============================================================================
 
 # ==============================================================================
@@ -44,7 +40,6 @@ readonly -a CORE_COMPONENTS=(
 core_fail() {
     if declare -F fatal >/dev/null; then
         fatal "$1"
-        return 1
     fi
 
     printf '[FATAL] %s\n' "$1" >&2
@@ -68,15 +63,16 @@ core_check_file() {
         return 1
     fi
 
-    if ! bash -n "$file"; then
-        core_fail "Syntax validation failed: $file"
+    local syntax_error
+    if ! syntax_error=$(bash -n "$file" 2>&1); then
+        core_fail "Syntax validation failed: $file: $syntax_error"
         return 1
     fi
 }
 
 # ==============================================================================
 # Source File
-# ==============================================================================
+# =============================================================================
 
 core_source_file() {
     local file="$1"
@@ -90,7 +86,7 @@ core_source_file() {
 
 # ==============================================================================
 # Load Files
-# ==============================================================================
+# =============================================================================
 
 core_load_files() {
     local directory="$1"
@@ -109,7 +105,7 @@ core_load_files() {
 
 # ==============================================================================
 # Initialize Core Libraries
-# ==============================================================================
+# =============================================================================
 
 init_core_libraries() {
     if [[ -n "${LOG_FILE:-}" ]]; then
@@ -120,11 +116,12 @@ init_core_libraries() {
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
     if ! : > "$LOG_FILE"; then
-        core_fail "Cannot create log file: $LOG_FILE"
+        printf '[FATAL] Cannot create log file: %s\n' "$LOG_FILE" >&2
         return 1
     fi
 
     core_load_files "$LIB_CORE" "${CORE_COMPONENTS[@]}" || return 1
 
-    success "Initialized: Core"
+    msg "Loaded: Core libraries"
+    msg "Initialized: Core"
 }

@@ -11,7 +11,7 @@
 #   - Handle unexpected command failures
 #   - Identify common command execution failures
 #   - Capture the failing command and source location
-#   - Report the original exit status
+#   - Report the current module and original exit status
 #
 # Constraints:
 #   - Sourced library: definitions only.
@@ -27,17 +27,16 @@
 
 trap_err() {
     local exit_code="$1"
-
-    trap - ERR
-
     local failing_command="${2:-unknown}"
     local line="${3:-unknown}"
     local call_line="${4:-unknown}"
 
+    trap - ERR
+
     local file="${BASH_SOURCE[1]:-$PROJECT_DIR/unknown}"
     local caller_file="${BASH_SOURCE[2]:-$PROJECT_DIR/unknown}"
     local caller_func="${FUNCNAME[2]:-main}"
-
+    local module_name="${AG_CURRENT_MODULE:-unknown}"
     local title
 
     case "$exit_code" in
@@ -54,7 +53,7 @@ trap_err() {
 
     error_report \
         "$title" \
-        "Command: $failing_command" \
+        "Module: $module_name; Command: $failing_command" \
         "$file" \
         "$line" \
         "$caller_file:$call_line ($caller_func)"
