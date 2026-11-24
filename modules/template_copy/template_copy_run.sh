@@ -26,7 +26,7 @@ template_copy_check() {
 # Main
 # ==============================================================================
 
-run_template_copy() {
+run_template() {
     template_copy_check
 
     success "Template_copy module executed successfully."

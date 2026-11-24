@@ -68,10 +68,6 @@ load_module() {
         fatal "Module bootstrap name already in use: $bootstrap_function"
     fi
 
-    if declare -F "$run_function" >/dev/null; then
-        fatal "Module run name already in use: $run_function"
-    fi
-
     [[ -d "$module_dir" ]] ||
         err_missing_directory "$module_dir"
 
@@ -90,8 +86,12 @@ load_module() {
     # which is what defines run_<name> for the orchestrator.
     "$bootstrap_function"
 
+    if declare -F "$run_function" >/dev/null; then
+        fatal "Module run name already in use: $run_function  ($module_name)"
+    fi
+
     declare -F "$run_function" >/dev/null ||
-        fatal "Module did not define its run function: $run_function"
+        fatal "Module: $module_name - did not define its run function: $run_function"
 
     local fn
     for fn in "${!functions_before[@]}"; do
