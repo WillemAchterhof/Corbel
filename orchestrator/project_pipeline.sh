@@ -12,10 +12,11 @@
 #   - Load each module through load_module()
 #
 # Dependencies:
-#   - load_module()    (orchestrator/module_loader.sh)
+#   - load_module()    (lib/integrity/integrity_module_loader.sh)
 #
 # Constraints:
-#   - Loads modules only; never calls module functions.
+#   - Loads and bootstraps modules only.
+#   - Never executes module run functions.
 #   - Execution order lives in project_orchestrator.sh.
 #   - Call only in errexit-active context (not inside if, ||, or !).
 # ==============================================================================

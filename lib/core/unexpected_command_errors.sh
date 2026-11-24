@@ -5,14 +5,19 @@
 # ==============================================================================
 # lib/core/unexpected_command_errors.sh
 #
+# Provides the centralized ERR trap handler.
+#
 # Responsibilities:
-#   - Handle unexpected command failures through trap_err
+#   - Handle unexpected command failures
 #   - Identify common command execution failures
-#   - Report the failing command and its caller
+#   - Capture the failing command and source location
+#   - Report the original exit status
 #
 # Constraints:
+#   - Sourced library: definitions only.
 #   - Defines the ERR trap handler only.
 #   - Does not install traps.
+#   - Reuses error_report() for consistent formatting.
 #   - Preserves the original exit status.
 # ==============================================================================
 
@@ -34,36 +39,26 @@ trap_err() {
     local caller_file="${BASH_SOURCE[2]:-$PROJECT_DIR/unknown}"
     local caller_func="${FUNCNAME[2]:-main}"
 
-    file="${file#"$PROJECT_DIR"/}"
-    caller_file="${caller_file#"$PROJECT_DIR"/}"
-
     local title
 
     case "$exit_code" in
         126)
-            title="Command not executable."
+            title="Command not executable"
             ;;
         127)
-            title="Command not found."
+            title="Command not found"
             ;;
         *)
-            title="Command failed."
+            title="Command failed"
             ;;
     esac
 
-    local report
-
-    printf -v report \
-        '[FATAL] Error\t: %s\n\tCommand\t: %s\n\tFile\t: %s:%s\n\tCaller\t: %s:%s (%s)' \
+    error_report \
         "$title" \
-        "$failing_command" \
+        "Command: $failing_command" \
         "$file" \
         "$line" \
-        "$caller_file" \
-        "$call_line" \
-        "$caller_func"
-
-    _err_report "$report"
+        "$caller_file:$call_line ($caller_func)"
 
     exit "$exit_code"
 }

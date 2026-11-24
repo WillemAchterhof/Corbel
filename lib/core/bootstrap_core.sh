@@ -35,7 +35,6 @@ readonly -a CORE_COMPONENTS=(
     "error_handling.sh"
     "specialized_errors.sh"
     "unexpected_command_errors.sh"
-    "component_loader.sh"
 )
 
 # ==============================================================================
@@ -106,7 +105,7 @@ core_load_files() {
 
 init_core_libraries() {
     [[ -z "${LOG_FILE:-}" ]] ||
-    { printf '[FATAL] Core libraries already initialized\n' >&2; return 1; }
+        { printf '[FATAL] Core libraries already initialized\n' >&2; return 1; }
 
     declare -g LOG_FILE="$PROJECT_DIR/install.log"
 
@@ -116,4 +115,6 @@ init_core_libraries() {
     }
 
     core_load_files "$LIB_CORE" "${CORE_COMPONENTS[@]}"
+
+    success "Initialized: Core"
 }

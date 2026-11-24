@@ -5,13 +5,18 @@
 # ==============================================================================
 # lib/core/specialized_errors.sh
 #
+# Provides descriptive error functions for expected validation failures.
+#
 # Responsibilities:
-#   - Handle deliberate validation errors
-#   - Provide descriptive messages for missing resources
-#   - Delegate termination to the ERR trap
+#   - Report missing directories
+#   - Report missing files
+#   - Report missing functions
+#   - Provide meaningful resource and function context
 #
 # Constraints:
-#   - Defines specialized error functions only.
+#   - Sourced library: definitions only.
+#   - Uses fatal() for centralized error reporting.
+#   - Does not install traps.
 #   - Never exits directly.
 # ==============================================================================
 
@@ -23,7 +28,7 @@ err_missing_directory() {
     local directory="$1"
 
     fatal \
-        "Module directory missing: ${directory#"$PROJECT_DIR"/}"
+        "Required directory missing: ${directory#"$PROJECT_DIR"/}"
 }
 
 # ==============================================================================
@@ -46,5 +51,5 @@ err_missing_function() {
     local source_file="$2"
 
     fatal \
-        "Entry function missing (${function_name}) in ${source_file#"$PROJECT_DIR"/}"
+        "Required function missing: $function_name (expected in ${source_file#"$PROJECT_DIR"/})"
 }
