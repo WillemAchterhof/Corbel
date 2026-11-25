@@ -31,7 +31,8 @@ PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 readonly PROJECT_DIR
 
 readonly LIB_DIR="$PROJECT_DIR/lib"
-readonly ORCHESTRATOR_PATH="$PROJECT_DIR/orchestrator"
+readonly ORCHESTRATOR_DIR="$PROJECT_DIR/orchestrator"
+readonly MODULES_DIR="$PROJECT_DIR/modules"
 
 # ==============================================================================
 # Bootstrap Libraries
@@ -104,7 +105,7 @@ load_error_handling() {
 # ==============================================================================
 
 load_orchestrator_components() {
-    load_components "$ORCHESTRATOR_PATH" "$@"
+    load_components "$ORCHESTRATOR_DIR" "$@"
 }
 
 # ==============================================================================
